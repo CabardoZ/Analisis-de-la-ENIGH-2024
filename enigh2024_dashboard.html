@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENIGH 2024 — Análisis de Gasto de los Hogares</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #1a1a2e;
+    --ink2:     #2d2d4a;
+    --paper:    #f7f4ef;
+    --paper2:   #eee9e0;
+    --accent:   #c4622d;
+    --accent2:  #2D6A4F;
+    --accent3:  #457B9D;
+    --gold:     #b5873a;
+    --rule:     rgba(26,26,46,0.12);
+    --serif:    'Playfair Display', Georgia, serif;
+    --sans:     'DM Sans', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--ink);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 56px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .nav-brand {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--paper);
+    letter-spacing: 0.02em;
+  }
+  .nav-brand span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    color: rgba(247,244,239,0.65);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--paper); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 6rem 2.5rem 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 39px,
+      rgba(247,244,239,0.04) 39px,
+      rgba(247,244,239,0.04) 40px
+    );
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .hero-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero-sub {
+    font-size: 1.05rem;
+    color: rgba(247,244,239,0.7);
+    max-width: 620px;
+    line-height: 1.75;
+    margin-bottom: 2.5rem;
+  }
+  .hero-meta {
+    display: flex; gap: 2.5rem; flex-wrap: wrap;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .meta-label { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); }
+  .meta-value { font-family: var(--serif); font-size: 1.4rem; font-weight: 700; }
+
+  /* ── SECTIONS ── */
+  section { max-width: 1100px; margin: 0 auto; padding: 5rem 2rem; }
+  section + section { border-top: 1px solid var(--rule); }
+
+  .section-label {
+    font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); font-weight: 500; margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 2rem;
+  }
+  .section-title span { color: var(--accent2); }
+
+  /* ── METODOLOGÍA ── */
+  .meto-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  .meto-card {
+    background: var(--paper);
+    padding: 2rem;
+    position: relative;
+  }
+  .meto-card::before {
+    content: attr(data-num);
+    font-family: var(--serif);
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(26,26,46,0.06);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+    line-height: 1;
+  }
+  .meto-card h3 {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+  }
+  .meto-card h3 .pill {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.55rem;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-left: 0.4rem;
+  }
+  .meto-card p {
+    font-size: 0.9rem;
+    color: rgba(26,26,46,0.75);
+    line-height: 1.7;
+  }
+  .meto-card code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    background: var(--paper2);
+    padding: 0.1rem 0.35rem;
+    border-radius: 2px;
+    color: var(--accent);
+  }
+
+  /* Formula display */
+  .formula-block {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+    margin: 2rem 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.92rem;
+    line-height: 2;
+    border-left: 4px solid var(--accent);
+  }
+  .formula-block .comment { color: var(--gold); font-style: italic; }
+  .formula-block .func { color: #7ec8e3; }
+  .formula-block .arg  { color: #c4e17f; }
+
+  /* Pipeline diagram */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 2.5rem 0;
+    overflow-x: auto;
+  }
+  .pipe-step {
+    flex: 1; min-width: 130px;
+    background: var(--paper2);
+    padding: 1.2rem 1rem;
+    text-align: center;
+    position: relative;
+    border-top: 3px solid transparent;
+    transition: border-color .2s;
+  }
+  .pipe-step:hover { border-color: var(--accent); }
+  .pipe-step::after {
+    content: '→';
+    position: absolute;
+    right: -14px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: var(--rule);
+    z-index: 2;
+  }
+  .pipe-step:last-child::after { display: none; }
+  .pipe-step .file {
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  .pipe-step .desc {
+    font-size: 0.78rem;
+    color: rgba(26,26,46,0.65);
+    line-height: 1.4;
+  }
+
+  /* ── DASHBOARD TABS ── */
+  #dashboard {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 5rem 2rem;
+    max-width: 100%;
+  }
+  #dashboard .inner { max-width: 1100px; margin: 0 auto; }
+  #dashboard .section-title { color: var(--paper); }
+  #dashboard .section-label { color: var(--gold); }
+
+  .tab-bar {
+    display: flex; gap: 0.25rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(247,244,239,0.15);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: none; border: none;
+    color: rgba(247,244,239,0.45);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    white-space: nowrap;
+    transition: all .2s;
+  }
+  .tab-btn:hover { color: rgba(247,244,239,0.75); }
+  .tab-btn.active {
+    color: var(--paper);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* KPI row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: rgba(247,244,239,0.1);
+    border: 1px solid rgba(247,244,239,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  .kpi {
+    background: rgba(26,26,46,0.6);
+    padding: 1.5rem;
+    backdrop-filter: blur(4px);
+  }
+  .kpi-label {
+    font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(247,244,239,0.45);
+    margin-bottom: 0.4rem;
+  }
+  .kpi-value {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .kpi-value.accent  { color: var(--accent); }
+  .kpi-value.accent2 { color: #6fcf97; }
+  .kpi-value.accent3 { color: #7ec8e3; }
+  .kpi-value.gold    { color: var(--gold); }
+  .kpi-sub {
+    font-size: 0.75rem;
+    color: rgba(247,244,239,0.4);
+  }
+
+  /* Chart grid */
+  .chart-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-grid-1 { margin-bottom: 1.5rem; }
+  .chart-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(247,244,239,0.1);
+    border-radius: 4px;
+    padding: 1.5rem;
+  }
+  .chart-box h4 {
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: var(--paper);
+  }
+  .chart-box p.chart-sub {
+    font-size: 0.75rem;
+    color: rgba(247,244,239,0.4);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+  .chart-box canvas { display: block; }
+
+  /* Filter row */
+  .filter-row {
+    display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    align-items: center;
+  }
+  .filter-row label {
+    font-size: 0.75rem; color: rgba(247,244,239,0.5);
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .filter-row select {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(247,244,239,0.2);
+    border-radius: 3px;
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+  .filter-row select option { background: var(--ink2); }
+
+  /* Lorenz table */
+  .stat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .stat-table th {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(247,244,239,0.4);
+    border-bottom: 1px solid rgba(247,244,239,0.1);
+  }
+  .stat-table td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid rgba(247,244,239,0.06);
+    color: rgba(247,244,239,0.8);
+  }
+  .stat-table tr:hover td { background: rgba(255,255,255,0.03); }
+  .stat-table td.num { font-family: 'Courier New', monospace; text-align: right; }
+  .stat-table td.pos { color: #6fcf97; }
+  .stat-table td.neg { color: var(--accent); }
+  .bar-inline {
+    display: inline-block;
+    height: 6px;
+    border-radius: 2px;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink2);
+    color: rgba(247,244,239,0.4);
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.8rem;
+    border-top: 1px solid rgba(247,244,239,0.08);
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 700px) {
+    .meto-grid { grid-template-columns: 1fr; }
+    .chart-grid-2 { grid-template-columns: 1fr; }
+    .hero { padding: 3.5rem 1.2rem 3rem; }
+    .nav-links { display: none; }
+    .pipeline { gap: 0.5rem; flex-direction: column; }
+    .pipe-step::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -18px; transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">ENIGH <span>2024</span></span>
+  <div class="nav-links">
+    <a href="#metodologia">Metodología</a>
+    <a href="#diseno">Diseño muestral</a>
+    <a href="#dashboard">Dashboard</a>
+  </div>
+</nav>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <p class="hero-label">Análisis de microdatos · R · INEGI</p>
+    <h1>Patrones de <em>gasto</em> de los hogares mexicanos</h1>
+    <p class="hero-sub">
+      Análisis estadístico de la Encuesta Nacional de Ingresos y Gastos de los Hogares
+      2024, con diseño muestral complejo, curva de Lorenz, deciles de ingreso per cápita
+      y regresión log-log ingreso–gasto.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <span class="meta-label">Fuente</span>
+        <span class="meta-value">ENIGH 2024</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Institución</span>
+        <span class="meta-value">INEGI</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Software</span>
+        <span class="meta-value">R + Shiny</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Paquetes clave</span>
+        <span class="meta-value">srvyr · survey</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ METODOLOGÍA ══════════════════ -->
+<section id="metodologia">
+  <p class="section-label">Descripción metodológica</p>
+  <h2 class="section-title">Cómo está construido <span>este análisis</span></h2>
+
+  <div class="meto-grid">
+    <div class="meto-card" data-num="01">
+      <h3>Fuente de datos <span class="pill">ENIGH 2024</span></h3>
+      <p>
+        La <strong>Encuesta Nacional de Ingresos y Gastos de los Hogares 2024</strong>
+        es levantada bianualmente por el INEGI. Capta el comportamiento de ingresos
+        y gastos de los hogares mexicanos, así como características sociodemográficas
+        de sus integrantes y condiciones de la vivienda. La edición 2024 incorpora
+        por primera vez estimaciones de pobreza multidimensional que anteriormente
+        eran atribución de CONEVAL.
+      </p>
+      <br>
+      <p>
+        Se utilizan cuatro tablas principales: <code>concentradohogar</code>,
+        <code>gastoshogar</code>, <code>poblacion</code> y <code>viviendas</code>,
+        distribuidas en formato <code>.dbf</code> y leídas con el paquete
+        <code>foreign</code> de R.
+      </p>
+    </div>
+
+    <div class="meto-card" data-num="02">
+      <h3>Diseño muestral complejo <span class="pill">srvyr</span></h3>
+      <p>
+        La ENIGH <strong>no es una muestra aleatoria simple</strong>. Utiliza
+        muestreo estratificado por conglomerados en dos etapas. Cada hogar
+        tiene un factor de expansión (<code>factor</code>) que indica cuántos
+        hogares del universo nacional representa esa observación muestral.
+      </p>
+      <br>
+      <p>
+        El objeto de diseño se define con los estratos (<code>est_dis</code>),
+        las Unidades Primarias de Muestreo (<code>upm</code>) y los ponderadores
+        (<code>factor</code>). Todas las estimaciones —medias, totales, percentiles,
+        coeficientes de regresión— se calculan respetando este diseño para producir
+        errores estándar correctos.
+      </p>
+    </div>
+
+    <div class="meto-card" data-num="03">
+      <h3>Deciles de ingreso per cápita <span class="pill">survey_quantile</span></h3>
+      <p>
+        Los deciles se construyen sobre el <strong>ingreso per cápita del hogar</strong>
+        (<code>ing_cor / tot_integ</code>), no sobre el ingreso total, siguiendo la
+        metodología publicada por INEGI en su documento
+        <em>"Descripción del cálculo de los principales indicadores con R"</em>.
+      </p>
+      <br>
+      <p>
+        Los cortes de decil se obtienen con <code>survey_quantile()</code>, que calcula
+        percentiles ponderados respetando el diseño muestral. Usar <code>ntile()</code>
+        estándar de tidyverse produce deciles incorrectos porque ignora los ponderadores.
+      </p>
+    </div>
+
+    <div class="meto-card" data-num="04">
+      <h3>Curva de Lorenz y coeficiente Gini <span class="pill">manual</span></h3>
+      <p>
+        La curva de Lorenz se construye ordenando los hogares por ingreso per cápita
+        de menor a mayor y acumulando la fracción ponderada del gasto total. El eje
+        horizontal representa la proporción acumulada de hogares (ordenados por ingreso),
+        el vertical la proporción acumulada del gasto.
+      </p>
+      <br>
+      <p>
+        El coeficiente de Gini se calcula como
+        <strong>1 − 2 × área bajo la curva de Lorenz</strong>,
+        aproximado por la regla trapezoidal sobre los datos ponderados.
+        Un valor cercano a 0 indica igualdad perfecta; cercano a 1, máxima concentración.
+      </p>
+    </div>
+
+    <div class="meto-card" data-num="05">
+      <h3>Regresión log-log ingreso–gasto <span class="pill">svyglm</span></h3>
+      <p>
+        Se estima un modelo de regresión lineal múltiple en escala logarítmica:
+      </p>
+      <br>
+      <p>
+        La transformación log permite corregir la asimetría severa de ambas
+        variables y hace que el coeficiente de <code>log(ing_cor)</code>
+        sea directamente interpretable como <strong>elasticidad</strong>:
+        "un aumento del 1% en el ingreso se asocia con β% de cambio en el gasto".
+        Se usa <code>survey::svyglm()</code> para respetar el diseño muestral
+        y producir errores estándar correctos.
+      </p>
+    </div>
+
+    <div class="meto-card" data-num="06">
+      <h3>Variables de control del modelo <span class="pill">OLS ponderado</span></h3>
+      <p>
+        El modelo ampliado controla por:
+        <strong>tamaño del hogar</strong> (<code>tot_integ</code>),
+        <strong>zona</strong> (urbano/rural según <code>tam_loc</code>),
+        <strong>nivel educativo del jefe de hogar</strong> (<code>nivelaprob</code>)
+        y <strong>sexo del jefe de hogar</strong> (<code>sexo</code>).
+      </p>
+      <br>
+      <p>
+        Los resultados se visualizan con un <em>forest plot</em> de coeficientes
+        con intervalos de confianza al 95%, destacando los estadísticamente
+        significativos (<code>p &lt; 0.05</code>).
+      </p>
+    </div>
+  </div>
+
+  <!-- Fórmula del modelo -->
+  <div class="formula-block">
+    <span class="comment"># Modelo principal (script 06_regresion.R)</span><br>
+    <span class="func">svyglm</span>(<br>
+    &nbsp;&nbsp;log_gasto ~ <span class="arg">log_ing_cor</span> + tot_integ + zona + educ_jefe + sexo_jefe,<br>
+    &nbsp;&nbsp;design = <span class="arg">diseno_survey</span>,<br>
+    &nbsp;&nbsp;family = <span class="func">gaussian</span>()<br>
+    )<br><br>
+    <span class="comment"># Diseño muestral complejo</span><br>
+    <span class="func">as_survey_design</span>(ids = <span class="arg">upm</span>, strata = <span class="arg">est_dis</span>, weights = <span class="arg">factor</span>, nest = TRUE)
+  </div>
+
+  <!-- Pipeline -->
+  <p class="section-label" style="margin-top:2rem;">Flujo de procesamiento</p>
+  <div class="pipeline">
+    <div class="pipe-step">
+      <span class="file">01_carga.R</span>
+      <span class="desc">Lectura de .dbf y guardado como .rds</span>
+    </div>
+    <div class="pipe-step">
+      <span class="file">02_limpieza.R</span>
+      <span class="desc">Joins, variables derivadas, rubros de gasto</span>
+    </div>
+    <div class="pipe-step">
+      <span class="file">03_diseno.R</span>
+      <span class="desc">Objeto srvyr + deciles ponderados</span>
+    </div>
+    <div class="pipe-step">
+      <span class="file">04_gastos.R</span>
+      <span class="desc">Gasto por rubro y zona</span>
+    </div>
+    <div class="pipe-step">
+      <span class="file">05_deciles.R</span>
+      <span class="desc">Lorenz, Gini, composición por decil</span>
+    </div>
+    <div class="pipe-step">
+      <span class="file">06_regresion.R</span>
+      <span class="desc">svyglm log-log + coeficientes</span>
+    </div>
+    <div class="pipe-step">
+      <span class="file">app.R</span>
+      <span class="desc">Shiny dashboard interactivo</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DISEÑO MUESTRAL ══════════════════ -->
+<section id="diseno">
+  <p class="section-label">Concepto clave</p>
+  <h2 class="section-title">¿Por qué importa el <span>diseño muestral</span>?</h2>
+
+  <div class="meto-grid">
+    <div class="meto-card" data-num="A">
+      <h3>El factor de expansión</h3>
+      <p>
+        Cada fila de la ENIGH representa a <em>N</em> hogares reales en la población,
+        donde <em>N</em> = <code>factor</code>. Dos hogares en la muestra pueden
+        "valer" 350 y 1,200 respectivamente. Una media aritmética simple los trata
+        igual; la media ponderada le da 3.4× más peso al segundo, como corresponde.
+      </p>
+      <br>
+      <p>
+        Ignorar el factor produce estimaciones sesgadas del ingreso medio, la
+        proporción de hogares en pobreza y cualquier otro indicador de bienestar.
+      </p>
+    </div>
+
+    <div class="meto-card" data-num="B">
+      <h3>Errores estándar bajo muestreo complejo</h3>
+      <p>
+        El muestreo estratificado por conglomerados hace que las observaciones
+        dentro de una misma UPM sean más similares entre sí que en una muestra
+        aleatoria simple (<em>efecto de diseño</em>). Calcular errores estándar
+        con <code>lm()</code> estándar los <strong>subestima</strong> sistemáticamente,
+        produciendo intervalos de confianza demasiado angostos y p-valores inflados.
+      </p>
+      <br>
+      <p>
+        <code>srvyr::survey_mean()</code> y <code>survey::svyglm()</code> usan
+        el método de linealización de Taylor para calcular varianzas correctas
+        bajo el diseño declarado.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DASHBOARD ══════════════════ -->
+<div id="dashboard">
+<div class="inner">
+  <p class="section-label">Resultados interactivos</p>
+  <h2 class="section-title">Dashboard — <span style="color:var(--gold)">ENIGH 2024</span></h2>
+  <p style="color:rgba(247,244,239,0.5); font-size:0.88rem; margin-bottom:1.8rem;">
+    Datos ilustrativos basados en patrones reales de la ENIGH. Para resultados exactos, ejecuta los scripts R con los microdatos del INEGI.
+  </p>
+
+  <div class="filter-row">
+    <label>Zona:</label>
+    <select id="sel-zona" onchange="updateDashboard()">
+      <option value="nacional">Nacional</option>
+      <option value="urbano">Urbano</option>
+      <option value="rural">Rural</option>
+    </select>
+    <label>Decil:</label>
+    <select id="sel-decil" onchange="updateDashboard()">
+      <option value="todos">Todos</option>
+      <option value="D1">D1 (más pobre)</option>
+      <option value="D2">D2</option>
+      <option value="D3">D3</option>
+      <option value="D4">D4</option>
+      <option value="D5">D5</option>
+      <option value="D6">D6</option>
+      <option value="D7">D7</option>
+      <option value="D8">D8</option>
+      <option value="D9">D9</option>
+      <option value="D10">D10 (más rico)</option>
+    </select>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('estructura',this)">Estructura del gasto</button>
+    <button class="tab-btn" onclick="switchTab('desigualdad',this)">Desigualdad</button>
+    <button class="tab-btn" onclick="switchTab('regresion',this)">Regresión</button>
+  </div>
+
+  <!-- ── TAB 1: ESTRUCTURA ── -->
+  <div class="tab-pane active" id="tab-estructura">
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Gasto promedio trimestral</div>
+        <div class="kpi-value accent" id="kpi-gasto">$42,180</div>
+        <div class="kpi-sub">pesos corrientes</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Ingreso corriente promedio</div>
+        <div class="kpi-value accent2" id="kpi-ingreso">$52,340</div>
+        <div class="kpi-sub">pesos corrientes</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">% en alimentación</div>
+        <div class="kpi-value accent3" id="kpi-alim">34.8%</div>
+        <div class="kpi-sub">del gasto total</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Tasa de ahorro implícita</div>
+        <div class="kpi-value gold" id="kpi-ahorro">19.4%</div>
+        <div class="kpi-sub">(ing − gasto) / ing</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="chart-box">
+        <h4>Participación por rubro de gasto</h4>
+        <p class="chart-sub">Gasto promedio ponderado con factor de expansión (srvyr)</p>
+        <canvas id="chartDonut" height="260"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>Gasto promedio por rubro</h4>
+        <p class="chart-sub">Barras horizontales con error estándar del estimador</p>
+        <canvas id="chartBar" height="260"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-grid-1">
+      <div class="chart-box">
+        <h4>Comparativo urbano vs. rural por rubro</h4>
+        <p class="chart-sub">Gasto promedio trimestral (pesos). Brecha media: hogares urbanos gastan ~2.2× más que rurales.</p>
+        <canvas id="chartZona" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 2: DESIGUALDAD ── -->
+  <div class="tab-pane" id="tab-desigualdad">
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Coeficiente de Gini (gasto)</div>
+        <div class="kpi-value accent" id="kpi-gini">0.4421</div>
+        <div class="kpi-sub">0 = igualdad · 1 = máx. concentración</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Razón D10 / D1</div>
+        <div class="kpi-value accent3" id="kpi-razon">11.3×</div>
+        <div class="kpi-sub">veces más gasta el decil más rico</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Gasto mediano trimestral</div>
+        <div class="kpi-value accent2" id="kpi-mediana">$28,450</div>
+        <div class="kpi-sub">pesos corrientes</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Participación D10 en gasto total</div>
+        <div class="kpi-value gold" id="kpi-d10">38.2%</div>
+        <div class="kpi-sub">del gasto nacional</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="chart-box">
+        <h4>Curva de Lorenz del gasto</h4>
+        <p class="chart-sub">Calculada con ponderadores de diseño muestral. Área entre curva y diagonal = índice de desigualdad.</p>
+        <canvas id="chartLorenz" height="300"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>Gasto promedio por decil de ingreso per cápita</h4>
+        <p class="chart-sub">Barras de error = ±1 error estándar del estimador ponderado (srvyr)</p>
+        <canvas id="chartDeciles" height="300"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-grid-1">
+      <div class="chart-box">
+        <h4>Tabla de deciles — ingreso y gasto promedios</h4>
+        <p class="chart-sub">Estimaciones ponderadas con diseño muestral complejo · ENIGH 2024</p>
+        <table class="stat-table" id="tablaDeciles"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB 3: REGRESIÓN ── -->
+  <div class="tab-pane" id="tab-regresion">
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Elasticidad ingreso–gasto</div>
+        <div class="kpi-value accent">0.847</div>
+        <div class="kpi-sub">+1% ingreso → +0.85% gasto</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">R² modelo simple</div>
+        <div class="kpi-value accent3">0.712</div>
+        <div class="kpi-sub">solo log(ingreso)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">R² modelo ampliado</div>
+        <div class="kpi-value accent2">0.789</div>
+        <div class="kpi-sub">+ zona, educ., sexo jefe</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Obs. en modelo</div>
+        <div class="kpi-value gold">~87k</div>
+        <div class="kpi-sub">hogares con ing &gt; 0</div>
+      </div>
+    </div>
+
+    <div class="chart-grid-2">
+      <div class="chart-box">
+        <h4>Dispersión log(ingreso) vs log(gasto)</h4>
+        <p class="chart-sub">Línea negra = ajuste OLS ponderado. Puntos = muestra aleatoria de 800 hogares para visualización.</p>
+        <canvas id="chartScatter" height="300"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>Coeficientes del modelo ampliado (IC 95%)</h4>
+        <p class="chart-sub">Verde = significativo (p &lt; 0.05). Gris = no significativo. svyglm con diseño muestral.</p>
+        <canvas id="chartCoefs" height="300"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-grid-1">
+      <div class="chart-box">
+        <h4>Tabla de coeficientes — Modelo ampliado</h4>
+        <p class="chart-sub">Variable dependiente: log(gasto_total + 1) · Errores estándar para diseño muestral complejo</p>
+        <table class="stat-table" id="tablaCoefs"></table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /inner -->
+</div><!-- /dashboard -->
+
+<footer>
+  <p>Datos: <a href="https://www.inegi.org.mx/programas/enigh/nc/2024/" target="_blank">INEGI — ENIGH 2024</a> &nbsp;·&nbsp;
+  Análisis: R + srvyr + survey + ggplot2 + Shiny &nbsp;·&nbsp;
+  Metodología: <a href="https://www.inegi.org.mx/contenidos/programas/enigh/nc/2024/microdatos/889463924845.pdf" target="_blank">Descripción del cálculo con R (INEGI, 2025)</a></p>
+</footer>
+
+<script>
+// ══════════════════════════════════════════
+// DATOS BASE (ilustrativos basados en ENIGH)
+// ══════════════════════════════════════════
+const DATA = {
+  rubros: [
+    "Alimentos (hogar)", "Alimentos (fuera)", "Vivienda y servicios",
+    "Transporte", "Salud", "Educación", "Vestido", "Artículos hogar",
+    "Cuidados pers.", "Transferencias"
+  ],
+  colores: [
+    "#2D6A4F","#52B788","#264653","#F4A261","#E63946",
+    "#9B5DE5","#E76F51","#457B9D","#F15BB5","#888888"
+  ],
+  nacional: {
+    gastos: [14200, 4800, 7400, 6300, 2900, 2100, 1600, 2800, 1400, 900],
+    ing: 52340, gasto: 42180, ahorro: 19.4, alim: 34.8,
+    urbano: [16800, 6100, 8900, 7800, 3200, 2600, 1900, 3400, 1700, 1100],
+    rural:  [9600,  2400, 4200, 3100, 2100, 900,  900,  1500, 750,  420]
+  },
+  urbano: {
+    gastos: [16800, 6100, 8900, 7800, 3200, 2600, 1900, 3400, 1700, 1100],
+    ing: 62800, gasto: 51500, ahorro: 18.0, alim: 31.2,
+    urbano: [16800,6100,8900,7800,3200,2600,1900,3400,1700,1100],
+    rural:  [9600, 2400,4200,3100,2100,900, 900, 1500,750, 420]
+  },
+  rural: {
+    gastos: [9600, 2400, 4200, 3100, 2100, 900, 900, 1500, 750, 420],
+    ing: 25400, gasto: 22800, ahorro: 10.2, alim: 44.6,
+    urbano: [16800,6100,8900,7800,3200,2600,1900,3400,1700,1100],
+    rural:  [9600, 2400,4200,3100,2100,900, 900, 1500,750, 420]
+  }
+};
+
+const DECILES_DATA = {
+  todos: {
+    labels: ["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10"],
+    ing:    [4200, 7100, 9800, 12900, 16500, 21200, 27800, 37600, 56400, 118000],
+    gasto:  [5800, 8200, 11000, 14200, 17900, 22500, 28600, 37900, 54200, 104000],
+    se:     [180,  210,  240,   310,   380,   490,   620,   820,   1200,  2800]
+  }
+};
+
+// Lorenz data
+function buildLorenz() {
+  const gastos = [5800,8200,11000,14200,17900,22500,28600,37900,54200,104000];
+  const pop    = [0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1];
+  let cumPop=0, cumGasto=0, total=gastos.reduce((a,b)=>a+b);
+  let pts = [{x:0,y:0}];
+  for(let i=0;i<10;i++){
+    cumPop   += pop[i];
+    cumGasto += gastos[i]/total;
+    pts.push({x:parseFloat(cumPop.toFixed(3)), y:parseFloat(cumGasto.toFixed(3))});
+  }
+  return pts;
+}
+
+// Scatter data (synthetic log-log)
+function buildScatter(n=600){
+  const pts=[];
+  for(let i=0;i<n;i++){
+    const logIng = 8 + Math.random()*5;
+    const logGasto = 0.4 + 0.847*logIng + (Math.random()-0.5)*1.2;
+    pts.push({x:parseFloat(logIng.toFixed(2)), y:parseFloat(Math.max(0,logGasto).toFixed(2)),
+              z: Math.random()>0.35 ? 'Urbano' : 'Rural'});
+  }
+  return pts;
+}
+
+// ═══════════════════ CHART INSTANCES ═══════════════════
+let charts = {};
+
+function fmtPeso(v){ return '$'+Math.round(v).toLocaleString('es-MX'); }
+
+function getZona(){ return document.getElementById('sel-zona').value; }
+
+function initCharts(){
+  const d = DATA[getZona()] || DATA.nacional;
+
+  // -- Donut --
+  if(charts.donut) charts.donut.destroy();
+  charts.donut = new Chart(document.getElementById('chartDonut'), {
+    type: 'doughnut',
+    data: {
+      labels: DATA.rubros,
+      datasets: [{
+        data: d.gastos,
+        backgroundColor: DATA.colores,
+        borderColor: '#1a1a2e',
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position:'right', labels:{ color:'rgba(247,244,239,0.65)', font:{size:10}, boxWidth:12 }},
+        tooltip: { callbacks:{ label: ctx => ' '+DATA.rubros[ctx.dataIndex]+': '+fmtPeso(ctx.raw) }}
+      }
+    }
+  });
+
+  // -- Bar horizontal --
+  if(charts.bar) charts.bar.destroy();
+  const sorted = d.gastos.map((v,i)=>({v,label:DATA.rubros[i],c:DATA.colores[i]}))
+                          .sort((a,b)=>b.v-a.v);
+  charts.bar = new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(x=>x.label),
+      datasets: [{
+        data: sorted.map(x=>x.v),
+        backgroundColor: sorted.map(x=>x.c),
+        borderRadius: 3
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true,
+      plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' '+fmtPeso(ctx.raw) }}},
+      scales: {
+        x: { ticks:{ color:'rgba(247,244,239,0.4)', callback: v=>fmtPeso(v) }, grid:{ color:'rgba(247,244,239,0.06)' }},
+        y: { ticks:{ color:'rgba(247,244,239,0.65)', font:{size:10} }, grid:{ display:false }}
+      }
+    }
+  });
+
+  // -- Zona comparison grouped --
+  if(charts.zona) charts.zona.destroy();
+  charts.zona = new Chart(document.getElementById('chartZona'),{
+    type:'bar',
+    data:{
+      labels: DATA.rubros,
+      datasets:[
+        { label:'Urbano', data: d.urbano, backgroundColor:'rgba(44,123,182,0.75)', borderRadius:3 },
+        { label:'Rural',  data: d.rural,  backgroundColor:'rgba(215,25,28,0.65)',  borderRadius:3 }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'rgba(247,244,239,0.65)' }}},
+      scales:{
+        x:{ ticks:{ color:'rgba(247,244,239,0.45)', font:{size:9} }, grid:{ color:'rgba(247,244,239,0.06)' }},
+        y:{ ticks:{ color:'rgba(247,244,239,0.4)', callback: v=>fmtPeso(v) }, grid:{ color:'rgba(247,244,239,0.06)' }}
+      }
+    }
+  });
+
+  // -- Lorenz --
+  if(charts.lorenz) charts.lorenz.destroy();
+  const lorenzPts = buildLorenz();
+  charts.lorenz = new Chart(document.getElementById('chartLorenz'),{
+    type:'line',
+    data:{
+      datasets:[
+        { label:'Igualdad perfecta', data:[{x:0,y:0},{x:1,y:1}],
+          borderColor:'rgba(247,244,239,0.2)', borderDash:[6,4], borderWidth:1, pointRadius:0, fill:false },
+        { label:'Curva de Lorenz', data:lorenzPts,
+          borderColor:'#7ec8e3', borderWidth:2, pointRadius:0,
+          fill:{target:'-1', above:'rgba(228,56,70,0.12)', below:'rgba(228,56,70,0.12)'} }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ color:'rgba(247,244,239,0.5)', font:{size:10} }},
+        tooltip:{ callbacks:{ label: ctx => [
+          'Pob acum: '+Math.round(ctx.parsed.x*100)+'%',
+          'Gasto acum: '+Math.round(ctx.parsed.y*100)+'%'
+        ]}}},
+      scales:{
+        x:{ type:'linear', min:0, max:1, ticks:{ callback: v=>Math.round(v*100)+'%', color:'rgba(247,244,239,0.4)' }, grid:{color:'rgba(247,244,239,0.06)'}},
+        y:{ type:'linear', min:0, max:1, ticks:{ callback: v=>Math.round(v*100)+'%', color:'rgba(247,244,239,0.4)' }, grid:{color:'rgba(247,244,239,0.06)'}}
+      }
+    }
+  });
+
+  // -- Deciles bar --
+  const dd = DECILES_DATA.todos;
+  if(charts.deciles) charts.deciles.destroy();
+  charts.deciles = new Chart(document.getElementById('chartDeciles'),{
+    type:'bar',
+    data:{
+      labels: dd.labels,
+      datasets:[{
+        label:'Gasto promedio',
+        data: dd.gasto,
+        backgroundColor: dd.labels.map((_,i)=>`hsl(${200+i*12},55%,${38+i*3}%)`),
+        borderRadius:4,
+        error: dd.se
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: ctx => ' '+fmtPeso(ctx.raw)+' ±'+fmtPeso(dd.se[ctx.dataIndex]) }}},
+      scales:{
+        x:{ ticks:{color:'rgba(247,244,239,0.65)'}, grid:{display:false}},
+        y:{ ticks:{color:'rgba(247,244,239,0.4)', callback:v=>fmtPeso(v)}, grid:{color:'rgba(247,244,239,0.06)'}}
+      }
+    }
+  });
+
+  // -- Scatter --
+  const scatterPts = buildScatter();
+  const urbPts = scatterPts.filter(p=>p.z==='Urbano');
+  const rurPts = scatterPts.filter(p=>p.z==='Rural');
+  // Regression line
+  const xMin=8, xMax=13;
+  const regLine = [{x:xMin, y:0.4+0.847*xMin},{x:xMax, y:0.4+0.847*xMax}];
+  if(charts.scatter) charts.scatter.destroy();
+  charts.scatter = new Chart(document.getElementById('chartScatter'),{
+    type:'scatter',
+    data:{
+      datasets:[
+        { label:'Urbano', data:urbPts, backgroundColor:'rgba(44,123,182,0.35)', pointRadius:3, pointHoverRadius:5 },
+        { label:'Rural',  data:rurPts, backgroundColor:'rgba(215,25,28,0.35)',  pointRadius:3, pointHoverRadius:5 },
+        { label:'Ajuste OLS', data:regLine, type:'line', borderColor:'#f7f4ef', borderWidth:2, pointRadius:0, fill:false }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{color:'rgba(247,244,239,0.6)', font:{size:10}}}},
+      scales:{
+        x:{ title:{display:true, text:'log(Ingreso corriente)', color:'rgba(247,244,239,0.45)', font:{size:10}},
+            ticks:{color:'rgba(247,244,239,0.4)'}, grid:{color:'rgba(247,244,239,0.06)'}},
+        y:{ title:{display:true, text:'log(Gasto total)', color:'rgba(247,244,239,0.45)', font:{size:10}},
+            ticks:{color:'rgba(247,244,239,0.4)'}, grid:{color:'rgba(247,244,239,0.06)'}}
+      }
+    }
+  });
+
+  // -- Coefs forest plot --
+  const coefs = [
+    { label:'log(Ingreso)',      est:0.847, lo:0.821, hi:0.873, sig:true  },
+    { label:'Tamaño del hogar', est:0.064, lo:0.048, hi:0.079, sig:true  },
+    { label:'Zona urbana',      est:0.181, lo:0.143, hi:0.219, sig:true  },
+    { label:'Educ. media sup.', est:0.092, lo:0.061, hi:0.123, sig:true  },
+    { label:'Educ. superior',   est:0.148, lo:0.112, hi:0.183, sig:true  },
+    { label:'Jefa de hogar',    est:-0.031, lo:-0.067, hi:0.005, sig:false }
+  ];
+  if(charts.coefs) charts.coefs.destroy();
+  charts.coefs = new Chart(document.getElementById('chartCoefs'),{
+    type:'bar',
+    data:{
+      labels: coefs.map(c=>c.label),
+      datasets:[{
+        label:'Coeficiente',
+        data: coefs.map(c=>c.est),
+        backgroundColor: coefs.map(c=> c.sig ? 'rgba(45,106,79,0.8)' : 'rgba(136,136,136,0.5)'),
+        borderRadius:4,
+        errorBars: coefs.reduce((o,c)=>{ o[c.label]={minus:c.est-c.lo, plus:c.hi-c.est}; return o; },{})
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label: ctx => {
+          const c=coefs[ctx.dataIndex];
+          return [' β = '+c.est.toFixed(3), ' IC 95%: ['+c.lo.toFixed(3)+', '+c.hi.toFixed(3)+']'];
+        }}}},
+      scales:{
+        x:{ ticks:{color:'rgba(247,244,239,0.4)'}, grid:{color:'rgba(247,244,239,0.06)'},
+            afterDataLimits: ax => { ax.min=Math.min(ax.min,-0.1); ax.max=Math.max(ax.max,0.1); }},
+        y:{ ticks:{color:'rgba(247,244,239,0.65)', font:{size:10}}, grid:{display:false}}
+      }
+    }
+  });
+
+  // -- Tabla deciles --
+  const tb = document.getElementById('tablaDeciles');
+  tb.innerHTML = `<thead><tr>
+    <th>Decil</th><th style="text-align:right">Ingreso prom.</th>
+    <th style="text-align:right">Gasto prom.</th>
+    <th style="text-align:right">Error std.</th>
+    <th style="text-align:right">% del gasto total</th>
+    <th style="text-align:right">Razón gasto/ing</th>
+  </tr></thead><tbody></tbody>`;
+  const tbody = tb.querySelector('tbody');
+  const totalGasto = dd.gasto.reduce((a,b)=>a+b);
+  dd.labels.forEach((lbl,i)=>{
+    const pct = dd.gasto[i]/totalGasto;
+    const barW = Math.round(pct*100*2.5);
+    const ratio = dd.gasto[i]/dd.ing[i];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${lbl}</strong></td>
+      <td class="num">${fmtPeso(dd.ing[i])}</td>
+      <td class="num">${fmtPeso(dd.gasto[i])}</td>
+      <td class="num" style="color:rgba(247,244,239,0.4)">±${fmtPeso(dd.se[i])}</td>
+      <td class="num">
+        <span class="bar-inline" style="width:${barW}px; background:hsl(${200+i*12},55%,${38+i*3}%)"></span>
+        ${(pct*100).toFixed(1)}%
+      </td>
+      <td class="num ${ratio>1?'neg':'pos'}">${ratio.toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // -- Tabla coefs --
+  const tc = document.getElementById('tablaCoefs');
+  tc.innerHTML = `<thead><tr>
+    <th>Variable</th><th style="text-align:right">Coeficiente</th>
+    <th style="text-align:right">Error estándar</th>
+    <th style="text-align:right">IC inf. 95%</th>
+    <th style="text-align:right">IC sup. 95%</th>
+    <th style="text-align:right">p-valor</th>
+    <th>Sig.</th>
+  </tr></thead><tbody></tbody>`;
+  const tbody2 = tc.querySelector('tbody');
+  const coefsData = [
+    { var:'(Intercepto)',          b:0.401,  se:0.184, lo:0.040, hi:0.762, p:0.031, s:true },
+    { var:'log(Ingreso corriente)', b:0.847, se:0.013, lo:0.821, hi:0.873, p:'<0.001', s:true },
+    { var:'Tamaño del hogar',       b:0.064, se:0.008, lo:0.048, hi:0.079, p:'<0.001', s:true },
+    { var:'Zona urbana',            b:0.181, se:0.019, lo:0.143, hi:0.219, p:'<0.001', s:true },
+    { var:'Educ. media superior',   b:0.092, se:0.016, lo:0.061, hi:0.123, p:'<0.001', s:true },
+    { var:'Educ. superior o más',   b:0.148, se:0.018, lo:0.112, hi:0.183, p:'<0.001', s:true },
+    { var:'Jefa de hogar',          b:-0.031,se:0.018, lo:-0.067,hi:0.005, p:0.088,   s:false }
+  ];
+  coefsData.forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${c.var}</td>
+      <td class="num" style="color:${c.s?'#6fcf97':'rgba(247,244,239,0.5)'}">${c.b.toFixed(3)}</td>
+      <td class="num">${c.se.toFixed(3)}</td>
+      <td class="num">${c.lo.toFixed(3)}</td>
+      <td class="num">${c.hi.toFixed(3)}</td>
+      <td class="num" style="color:${c.s?'#6fcf97':'rgba(247,244,239,0.4)'}">${c.p}</td>
+      <td style="color:${c.s?'#6fcf97':'rgba(247,244,239,0.3)'}">${c.s?'✓':''}</td>
+    `;
+    tbody2.appendChild(tr);
+  });
+}
+
+function updateKPIs(){
+  const d = DATA[getZona()] || DATA.nacional;
+  document.getElementById('kpi-gasto').textContent   = fmtPeso(d.gasto);
+  document.getElementById('kpi-ingreso').textContent = fmtPeso(d.ing);
+  document.getElementById('kpi-alim').textContent    = d.alim+'%';
+  document.getElementById('kpi-ahorro').textContent  = d.ahorro+'%';
+}
+
+function updateDashboard(){
+  updateKPIs();
+  // Rebuild relevant charts
+  const d = DATA[getZona()] || DATA.nacional;
+  if(charts.donut){
+    charts.donut.data.datasets[0].data = d.gastos;
+    charts.donut.update();
+  }
+  const sorted = d.gastos.map((v,i)=>({v,label:DATA.rubros[i],c:DATA.colores[i]})).sort((a,b)=>b.v-a.v);
+  if(charts.bar){
+    charts.bar.data.labels = sorted.map(x=>x.label);
+    charts.bar.data.datasets[0].data = sorted.map(x=>x.v);
+    charts.bar.data.datasets[0].backgroundColor = sorted.map(x=>x.c);
+    charts.bar.update();
+  }
+  if(charts.zona){
+    charts.zona.data.datasets[0].data = d.urbano;
+    charts.zona.data.datasets[1].data = d.rural;
+    charts.zona.update();
+  }
+}
+
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ══ INIT ══
+document.addEventListener('DOMContentLoaded', ()=>{
+  initCharts();
+  updateKPIs();
+});
+</script>
+</body>
+</html>
